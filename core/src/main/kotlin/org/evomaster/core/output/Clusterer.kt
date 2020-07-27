@@ -57,16 +57,20 @@ object Clusterer {
                 metric = metric
         )
 
-        val clusters = clu.performCLustering()
-        clusters.forEachIndexed { index, clu ->
-            val inds = solution.individuals.filter { ind ->
-                ind.evaluatedActions().any { ac ->
-                    clu.contains(ac.result as RestCallResult)
-                }
-            }.map {
-                it.assignToCluster("${metric.getName()}_$index")
-            }.toMutableSet()
+        val clusters = when(clusterableActions.size) {
+            0 -> mutableListOf<MutableList<RestCallResult>>()
+            1 -> mutableListOf<MutableList<RestCallResult>>(clusterableActions.toMutableList())
+            else -> clu.performCLustering()
         }
+        clusters.forEachIndexed { index, clu ->
+                val inds = solution.individuals.filter { ind ->
+                    ind.evaluatedActions().any { ac ->
+                        clu.contains(ac.result as RestCallResult)
+                    }
+                }.map {
+                    it.assignToCluster("${metric.getName()}_$index")
+                }.toMutableSet()
+            }
         return clusters
     }
 
